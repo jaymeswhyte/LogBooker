@@ -1,6 +1,7 @@
 package com.example.logbooker
 
 import android.os.Bundle
+import android.widget.Button
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,15 +18,10 @@ import androidx.compose.ui.graphics.Color
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent {
-            LogBookerTheme {
-                // A surface container using the 'background' color from the theme
-                Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                    //Greeting("Android")
-                    TestText()
-                }
-            }
-        }
+        setContentView(R.layout.layout)
+
+        val addBookButton = findViewById(R.id.buttonAddBook) as Button
+
     }
 }
 
