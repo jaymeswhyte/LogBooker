@@ -4,8 +4,10 @@ import android.content.Context
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.recyclerview.widget.RecyclerView
@@ -31,8 +33,12 @@ class MainActivity : ComponentActivity() {
             addBook()
         }
 
+
+
         val dune = Book(1, "Dune", "Frank Herbert", 500, false)
         val bookRecycler = findViewById<RecyclerView>(R.id.bookRecycler)
+        val testBox = findViewById<TextView>(R.id.testBox)
+        testBox.text = bookArray.toString()
     }
 
     @Composable
