@@ -2,26 +2,14 @@ package com.example.logbooker
 
 import android.content.Context
 import android.os.Bundle
-import android.view.View
 import android.widget.Button
 import android.widget.EditText
-import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import com.example.logbooker.ui.theme.LogBookerTheme
-import androidx.compose.ui.graphics.Color
 import androidx.recyclerview.widget.RecyclerView
-import androidx.recyclerview.widget.RecyclerView.Recycler
 import com.google.gson.Gson
-import org.w3c.dom.Text
 
 
 class MainActivity : ComponentActivity() {
@@ -29,7 +17,14 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.layout)
 
-        //loadBooks()
+        // Load Books from Shared Preferences
+        val bookMap = loadBooks()
+        val gson = Gson()
+        val bookArray = arrayListOf<Book>()
+        for ((key, jsonString) in bookMap){
+            val parsedBook = gson.fromJson(jsonString as String, Book::class.java)
+            bookArray.add(parsedBook)
+        }
 
         val addBookButton = findViewById<Button>(R.id.buttonAddBook)
         addBookButton.setOnClickListener {
@@ -68,7 +63,8 @@ class MainActivity : ComponentActivity() {
         Toast.makeText(this, "Book Added!", Toast.LENGTH_SHORT).show()
     }
 
-    private fun loadBooks(){
+    private fun loadBooks(): Map<String, *> {
         val sharedPreferences = getSharedPreferences("sharedPrefs", Context.MODE_PRIVATE)
+        return sharedPreferences.all
     }
 }
