@@ -1,7 +1,12 @@
 package com.example.logbooker
 
+import android.content.Context
 import android.os.Bundle
+import android.view.View
 import android.widget.Button
+import android.widget.EditText
+import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,6 +18,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.logbooker.ui.theme.LogBookerTheme
 import androidx.compose.ui.graphics.Color
+import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.RecyclerView.Recycler
+import com.google.gson.Gson
+import org.w3c.dom.Text
 
 
 class MainActivity : ComponentActivity() {
@@ -20,32 +29,46 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.layout)
 
-        val addBookButton = findViewById(R.id.buttonAddBook) as Button
+        //loadBooks()
 
+        val addBookButton = findViewById<Button>(R.id.buttonAddBook)
+        addBookButton.setOnClickListener {
+            addBook()
+        }
+
+        val dune = Book(1, "Dune", "Frank Herbert", 500, false)
+        val bookRecycler = findViewById<RecyclerView>(R.id.bookRecycler)
     }
-}
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-            text = "1234",
-            modifier = modifier
-    )
-}
+    @Composable
+    private fun showBook(book:Book){
+        Text(book.title)
+    }
 
-@Composable
-fun TestText(modifier: Modifier = Modifier) {
-    Text(
-        text="Testing!",
-        modifier = Modifier
-    )
-}
+    private fun addBook(){
+        // Get Text Fields Input
+        val bookTitle = findViewById<EditText>(R.id.nameText).text.toString()
+        val bookAuthor = findViewById<EditText>(R.id.authorText).toString()
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    LogBookerTheme {
-        Greeting("Android")
-        TestText()
+        // Create new book object with input values
+        val newBook = Book(title=bookTitle, author=bookAuthor)
+
+        // Convert book to Json using Gson
+        val gson = Gson()
+        val jsonBook = gson.toJson(newBook)
+
+        // Ready up SharedPreferences
+        val sharedPreferences = getSharedPreferences("sharedPrefs", Context.MODE_PRIVATE)
+        val editor = sharedPreferences.edit()
+        editor.apply {
+            editor.putString("newBook", jsonBook)
+            editor.commit()
+        }.apply()
+
+        Toast.makeText(this, "Book Added!", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun loadBooks(){
+        val sharedPreferences = getSharedPreferences("sharedPrefs", Context.MODE_PRIVATE)
     }
 }
