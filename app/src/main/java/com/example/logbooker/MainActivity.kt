@@ -33,12 +33,15 @@ class MainActivity : ComponentActivity() {
             addBook()
         }
 
-
-
         val dune = Book(1, "Dune", "Frank Herbert", 500, false)
         val bookRecycler = findViewById<RecyclerView>(R.id.bookRecycler)
         val testBox = findViewById<TextView>(R.id.testBox)
-        testBox.text = bookArray.toString()
+        var titlesString = ""
+        for(book in bookArray){
+            // Get title and add to display string
+            titlesString += book.title
+        }
+        testBox.text = titlesString
     }
 
     @Composable
