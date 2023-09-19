@@ -1,5 +1,6 @@
 package com.example.logbooker
 
+import android.content.ContentValues
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.os.Bundle
@@ -25,21 +26,21 @@ class MainActivity : ComponentActivity() {
         //Check if database exists
         dbCheck();
         // Load Books from Shared Preferences
-        val bookMap = loadBooks()
-        val gson = Gson()
-        var bookArray = arrayListOf<Book>()
-        for ((key, jsonString) in bookMap){
+        val bookArray = loadBooks()
+        //val gson = Gson()
+        //var bookArray = arrayListOf<Book>()
+        //for ((key, jsonString) in bookMap){
         //    val parsedBook = gson.fromJson(jsonString as String, Book::class.java)
-            bookArray = gson.fromJson(jsonString as String, ArrayList<Book>()::class.java)
+        //    bookArray = gson.fromJson(jsonString as String, ArrayList<Book>()::class.java)
         //    bookArray.add(parsedBook)
-        }
+        //}
 
         val addBookButton = findViewById<Button>(R.id.buttonAddBook)
         addBookButton.setOnClickListener {
             addBook(bookArray)
         }
 
-        val dune = Book(1, "Dune", "Frank Herbert", 500, false)
+        //val dune = Book(1, "Dune", "Frank Herbert", 500, 0, false)
 
 
         val bookRecycler = findViewById<RecyclerView>(R.id.bookRecycler)
@@ -67,7 +68,7 @@ class MainActivity : ComponentActivity() {
         } catch (exception:Exception){
             val myLibrary = openOrCreateDatabase("myLibrary.db", MODE_PRIVATE, null)
             myLibrary.execSQL(
-                "CREATE TABLE book (id INT PRIMARY KEY, title VARCHAR(200), author VARCHAR(100), pages INT DEFAULT 0, pagesRead INT DEFAULT 0, complete BOOL DEFAULT 'False');")
+                "CREATE TABLE book (id INT PRIMARY KEY, title VARCHAR(200), author VARCHAR(100), pages INT DEFAULT 0, pagesRead INT DEFAULT 0, complete INT DEFAULT 0);")
             val editor = sharedPreferences.edit()
             editor.apply {
                 editor.putBoolean("DB_EXISTS", true)
@@ -85,22 +86,43 @@ class MainActivity : ComponentActivity() {
         bookArray.add(newBook)
 
         // Convert book to Json using Gson
-        val gson = Gson()
-        val jsonBooks = gson.toJson(bookArray)
+        //val gson = Gson()
+        //val jsonBooks = gson.toJson(bookArray)
 
         // Ready up SharedPreferences
-        val sharedPreferences = getSharedPreferences("sharedPrefs", Context.MODE_PRIVATE)
-        val editor = sharedPreferences.edit()
-        editor.apply {
-            editor.putString("bookList", jsonBooks)
-            editor.commit()
-        }.apply()
+        //val sharedPreferences = getSharedPreferences("sharedPrefs", Context.MODE_PRIVATE)
+        //val editor = sharedPreferences.edit()
+        //editor.apply {
+        //    editor.putString("bookList", jsonBooks)
+        //    editor.commit()
+        //}.apply()
+
+        // Insert Book into database
+        val myLibrary = openOrCreateDatabase("myLibrary.db", MODE_PRIVATE, null)
+        val myCursor = myLibrary.rawQuery("SELECT MAX(id) from book;", null)
+        val nextIndex = myCursor.getInt(0)+1
+        myCursor.close()
+        val values = ContentValues()
+        values.put("id", nextIndex)
+        values.put("title", bookTitle)
+        values.put("author", bookAuthor)
+        myLibrary.insert("book", null, values)
 
         Toast.makeText(this, "Book Added!", Toast.LENGTH_SHORT).show()
     }
 
-    private fun loadBooks(): Map<String, *> {
-        val sharedPreferences = getSharedPreferences("sharedPrefs", Context.MODE_PRIVATE)
-        return sharedPreferences.all
+    private fun loadBooks(): ArrayList<Book> {
+        //val sharedPreferences = getSharedPreferences("sharedPrefs", Context.MODE_PRIVATE)
+        //return sharedPreferences.all
+        val returnArray = ArrayList<Book>()
+        val myLibrary = openOrCreateDatabase("myLibrary.db", MODE_PRIVATE, null)
+        val myCursor = myLibrary.rawQuery("SELECT * from book;", null)
+        while (myCursor.moveToNext()){
+            returnArray.add(Book(myCursor.getInt(0), myCursor.getString(1), myCursor.getString(2),
+                myCursor.getInt(3), myCursor.getInt(4), myCursor.getInt(5)>0))
+        }
+        myCursor.close()
+        myLibrary.close()
+        return returnArray
     }
 }
