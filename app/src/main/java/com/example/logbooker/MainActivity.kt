@@ -4,6 +4,7 @@ import android.content.ContentValues
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
@@ -23,6 +24,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.layout)
 
+        Log.wtf("Hello", "Hello!")
         //Check if database exists
         dbCheck();
         // Load Books from Shared Preferences
@@ -63,12 +65,11 @@ class MainActivity : ComponentActivity() {
 
     private fun dbCheck(){
         val sharedPreferences = getSharedPreferences("sharedPrefs", Context.MODE_PRIVATE)
-        try {
-            sharedPreferences.getBoolean("DB_EXISTS", true)
-        } catch (exception:Exception){
+        if (!sharedPreferences.contains("DB_EXISTS")) {
             val myLibrary = openOrCreateDatabase("myLibrary.db", MODE_PRIVATE, null)
             myLibrary.execSQL(
                 "CREATE TABLE book (id INT PRIMARY KEY, title VARCHAR(200), author VARCHAR(100), pages INT DEFAULT 0, pagesRead INT DEFAULT 0, complete INT DEFAULT 0);")
+            myLibrary.close()
             val editor = sharedPreferences.edit()
             editor.apply {
                 editor.putBoolean("DB_EXISTS", true)
@@ -78,6 +79,7 @@ class MainActivity : ComponentActivity() {
     }
     private fun addBook(bookArray:ArrayList<Book>){
         // Get Text Fields Input
+        Log.d("AddBook", "Trying to add book")
         val bookTitle = findViewById<EditText>(R.id.nameText).text.toString()
         val bookAuthor = findViewById<EditText>(R.id.authorText).toString()
 
@@ -99,14 +101,28 @@ class MainActivity : ComponentActivity() {
 
         // Insert Book into database
         val myLibrary = openOrCreateDatabase("myLibrary.db", MODE_PRIVATE, null)
-        val myCursor = myLibrary.rawQuery("SELECT MAX(id) from book;", null)
-        val nextIndex = myCursor.getInt(0)+1
-        myCursor.close()
+        var nextIndex = 0
+        Log.d("Index", "Default Index Created")
+        val testCursor = myLibrary.rawQuery("SELECT EXISTS(SELECT * from book);", null)
+        Log.d("Query", "Query W")
+        Log.d("Count", testCursor.count.toString())
+        if (testCursor.count==1){
+            nextIndex=0
+            Log.d("Empty", "Table is empty")}
+        else{
+            val myCursor = myLibrary.rawQuery("SELECT MAX(id) from book;", null)
+            Log.d("Got highest id", "Got highest ID")
+            nextIndex = myCursor.getInt(0)+1
+            myCursor.close()
+            Log.d("Closed Cursor", "Closed Cursor")
+        }
         val values = ContentValues()
         values.put("id", nextIndex)
         values.put("title", bookTitle)
         values.put("author", bookAuthor)
         myLibrary.insert("book", null, values)
+        Log.d("Inserted New Values", "inserted new values")
+        myLibrary.close()
 
         Toast.makeText(this, "Book Added!", Toast.LENGTH_SHORT).show()
     }
