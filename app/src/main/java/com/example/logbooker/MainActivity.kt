@@ -10,6 +10,8 @@ import androidx.activity.ComponentActivity
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.gson.Gson
 
@@ -22,26 +24,36 @@ class MainActivity : ComponentActivity() {
         // Load Books from Shared Preferences
         val bookMap = loadBooks()
         val gson = Gson()
-        val bookArray = arrayListOf<Book>()
+        var bookArray = arrayListOf<Book>()
         for ((key, jsonString) in bookMap){
-            val parsedBook = gson.fromJson(jsonString as String, Book::class.java)
-            bookArray.add(parsedBook)
+        //    val parsedBook = gson.fromJson(jsonString as String, Book::class.java)
+            bookArray = gson.fromJson(jsonString as String, ArrayList<Book>()::class.java)
+        //    bookArray.add(parsedBook)
         }
 
         val addBookButton = findViewById<Button>(R.id.buttonAddBook)
         addBookButton.setOnClickListener {
-            addBook()
+            addBook(bookArray)
         }
 
         val dune = Book(1, "Dune", "Frank Herbert", 500, false)
+
+
         val bookRecycler = findViewById<RecyclerView>(R.id.bookRecycler)
+        bookRecycler.setHasFixedSize(true)
+        bookRecycler.layoutManager = LinearLayoutManager(this)
+        var bookAdapter = BookAdapter(bookArray)
+        bookRecycler.adapter = bookAdapter
+
+
+
         val testBox = findViewById<TextView>(R.id.testBox)
-        var titlesString = ""
+        //var titlesString = ""
         for(book in bookArray){
             // Get title and add to display string
-            titlesString += book.title
+            //titlesString += book.title
         }
-        testBox.text = titlesString
+        testBox.text = bookArray.size.toString()
     }
 
     @Composable
@@ -49,23 +61,24 @@ class MainActivity : ComponentActivity() {
         Text(book.title)
     }
 
-    private fun addBook(){
+    private fun addBook(bookArray:ArrayList<Book>){
         // Get Text Fields Input
         val bookTitle = findViewById<EditText>(R.id.nameText).text.toString()
         val bookAuthor = findViewById<EditText>(R.id.authorText).toString()
 
         // Create new book object with input values
         val newBook = Book(title=bookTitle, author=bookAuthor)
+        bookArray.add(newBook)
 
         // Convert book to Json using Gson
         val gson = Gson()
-        val jsonBook = gson.toJson(newBook)
+        val jsonBooks = gson.toJson(bookArray)
 
         // Ready up SharedPreferences
         val sharedPreferences = getSharedPreferences("sharedPrefs", Context.MODE_PRIVATE)
         val editor = sharedPreferences.edit()
         editor.apply {
-            editor.putString("newBook", jsonBook)
+            editor.putString("bookList", jsonBooks)
             editor.commit()
         }.apply()
 
