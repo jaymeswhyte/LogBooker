@@ -1,6 +1,7 @@
 package com.example.logbooker
 
 import android.content.Context
+import android.database.sqlite.SQLiteDatabase
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
@@ -21,6 +22,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.layout)
 
+        //Check if database exists
+        dbCheck();
         // Load Books from Shared Preferences
         val bookMap = loadBooks()
         val gson = Gson()
@@ -56,11 +59,22 @@ class MainActivity : ComponentActivity() {
         testBox.text = bookArray.size.toString()
     }
 
-    @Composable
-    private fun showBook(book:Book){
-        Text(book.title)
-    }
 
+    private fun dbCheck(){
+        val sharedPreferences = getSharedPreferences("sharedPrefs", Context.MODE_PRIVATE)
+        try {
+            sharedPreferences.getBoolean("DB_EXISTS", true)
+        } catch (exception:Exception){
+            val myLibrary = openOrCreateDatabase("myLibrary.db", MODE_PRIVATE, null)
+            myLibrary.execSQL(
+                "CREATE TABLE book (id INT PRIMARY KEY, title VARCHAR(200), author VARCHAR(100), pages INT DEFAULT 0, pagesRead INT DEFAULT 0, complete BOOL DEFAULT 'False');")
+            val editor = sharedPreferences.edit()
+            editor.apply {
+                editor.putBoolean("DB_EXISTS", true)
+                editor.commit()
+            }.apply()
+        }
+    }
     private fun addBook(bookArray:ArrayList<Book>){
         // Get Text Fields Input
         val bookTitle = findViewById<EditText>(R.id.nameText).text.toString()
