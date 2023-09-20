@@ -41,7 +41,10 @@ class MainActivity : ComponentActivity() {
         addBookButton.setOnClickListener {
             addBook(bookArray)
         }
-
+        val resetButton = findViewById<Button>(R.id.reset)
+        resetButton.setOnClickListener{
+            dbWipe()
+        }
         //val dune = Book(1, "Dune", "Frank Herbert", 500, 0, false)
 
 
@@ -62,7 +65,12 @@ class MainActivity : ComponentActivity() {
         testBox.text = bookArray.size.toString()
     }
 
-
+    private fun dbWipe(){
+        val myLibrary = openOrCreateDatabase("myLibrary.db", MODE_PRIVATE, null)
+        myLibrary.execSQL("DELETE FROM book;")
+        myLibrary.close()
+        Toast.makeText(this, "Books Burned!", Toast.LENGTH_SHORT).show()
+    }
     private fun dbCheck(){
         val sharedPreferences = getSharedPreferences("sharedPrefs", Context.MODE_PRIVATE)
         if (!sharedPreferences.contains("DB_EXISTS")) {
@@ -106,13 +114,15 @@ class MainActivity : ComponentActivity() {
         val testCursor = myLibrary.rawQuery("SELECT EXISTS(SELECT * from book);", null)
         Log.d("Query", "Query W")
         Log.d("Count", testCursor.count.toString())
-        if (testCursor.count==1){
-            nextIndex=0
+        if (testCursor.count==0){
+            nextIndex=1
             Log.d("Empty", "Table is empty")}
         else{
             val myCursor = myLibrary.rawQuery("SELECT MAX(id) from book;", null)
             Log.d("Got highest id", "Got highest ID")
-            nextIndex = myCursor.getInt(0)+1
+            while(myCursor.moveToNext()) {
+                nextIndex = myCursor.getInt(0)+1
+            }
             myCursor.close()
             Log.d("Closed Cursor", "Closed Cursor")
         }
